@@ -1,0 +1,25 @@
+# Format berkas (baris berawalan # diabaikan):
+#   == Judul Bab        -> memulai bab baru
+#   [ar] / [lat] / [id] -> teks Arab / transliterasi Latin / terjemah Indonesia
+#   Pisahkan tiap bait/paragraf dengan SATU BARIS KOSONG; bait ke-1 Arab
+#   dipasangkan dengan bait ke-1 Latin dan ke-1 terjemah, dst.
+
+== Pasal 1 — Tentang Kerinduan
+[ar]
+أَمِنْ تَذَكُّرِ جِيرَانٍ بِذِي سَلَمِ مَزَجْتَ دَمْعًا جَرَى مِنْ مُقْلَةٍ بِدَمِ
+
+أَمْ هَبَّتِ الرِّيحُ مِنْ تِلْقَاءِ كَاظِمَةٍ وَأَوْمَضَ الْبَرْقُ فِي الظَّلْمَاءِ مِنْ إِضَمِ
+
+[lat]
+A min tadzakkuri jīrānin bi dzī salami, mazajta damʿan jarā min muqlatin bi dami
+
+Am habbatir-rīḥu min tilqā'i kāẓimatin, wa aumaḍal-barqu fiẓ-ẓalmā'i min iḍami
+
+[id]
+Apakah karena mengingat para tetangga di Dzi Salam, engkau campurkan air mata yang mengalir dari kelopak matamu dengan darah?
+
+Ataukah karena angin bertiup dari arah Kazhimah, dan kilat berkilau dalam kegelapan dari arah Idham?
+
+== Teks lengkap belum diisi
+[id]
+Baru dua bait pertama yang tersedia sebagai contoh. Tempel sisa teks Burdah di berkas assets/maulid/burdah.txt dengan format di atas.

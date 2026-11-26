@@ -1,0 +1,19 @@
+# Maulid ad-Diba'i — isi teks lengkap di sini.
+# Format:
+#   == Judul Bab
+#   [ar] / [lat] / [id]  -> teks Arab / Latin / terjemah
+#   Pisahkan tiap bait/paragraf dengan SATU BARIS KOSONG.
+
+== Pembuka
+[ar]
+بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ
+
+[lat]
+Bismillāhir-raḥmānir-raḥīm
+
+[id]
+Dengan nama Allah Yang Maha Pengasih lagi Maha Penyayang
+
+== Teks lengkap belum diisi
+[id]
+Tempel teks Maulid ad-Diba'i di berkas ini dengan format di atas. Sebaiknya bagi per bab agar mudah dibaca.
