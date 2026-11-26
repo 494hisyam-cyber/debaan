@@ -9,11 +9,11 @@ val buildNumber = (project.findProperty("buildNumber") as String?)?.toIntOrNull(
 val githubRepo = (project.findProperty("githubRepo") as String?) ?: "USERNAME/debaan"
 
 android {
-    namespace = "com.rifsy.debaan"
+    namespace = "com.debaan"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.rifsy.debaan"
+        applicationId = "com.debaan"
         minSdk = 26
         targetSdk = 34
         versionCode = buildNumber
