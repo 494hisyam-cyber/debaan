@@ -1,0 +1,56 @@
+name: Build APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Susun berkas proyek
+        run: |
+          # Berkas yang diunggah tanpa folder memakai "__" sebagai pengganti "/".
+          # Contoh: app__src__main__AndroidManifest.xml -> app/src/main/AndroidManifest.xml
+          for f in *__*; do
+            [ -f "$f" ] || continue
+            p="${f//__//}"
+            mkdir -p "$(dirname "$p")"
+            mv -f "$f" "$p"
+            echo "disusun: $p"
+          done
+          rm -f build.gradle.kts build.gradle
+          ls -la
+          test -f settings.gradle.kts
+          test -f app/build.gradle.kts
+          test -f app/src/main/AndroidManifest.xml
+          test -f app/debaan.jks
+
+      - name: Build release APK
+        run: gradle assembleRelease -PbuildNumber=${{ github.run_number }} -PgithubRepo=${{ github.repository }} --no-daemon
+
+      - name: Rename APK
+        run: cp app/build/outputs/apk/release/app-release.apk Debaan-v1.0.${{ github.run_number }}.apk
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Debaan v1.0.${{ github.run_number }}
+          body: ${{ github.event.head_commit.message }}
+          files: Debaan-v1.0.${{ github.run_number }}.apk
