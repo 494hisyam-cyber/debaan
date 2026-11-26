@@ -27,6 +27,8 @@ jobs:
         run: |
           # Berkas yang diunggah tanpa folder memakai "__" sebagai pengganti "/".
           # Contoh: app__src__main__AndroidManifest.xml -> app/src/main/AndroidManifest.xml
+          # Buang berkas lama yang masih memakai nama paket lama (com/rifsy).
+          rm -f *__rifsy__*
           for f in *__*; do
             [ -f "$f" ] || continue
             p="${f//__//}"
@@ -40,6 +42,20 @@ jobs:
           test -f app/build.gradle.kts
           test -f app/src/main/AndroidManifest.xml
           test -f app/debaan.jks
+
+      - name: Unduh font Arab
+        run: |
+          # Font sumber terbuka (OFL) dari Google Fonts. Bila satu gagal, aplikasi tetap jalan.
+          mkdir -p app/src/main/assets/fonts
+          B=https://github.com/google/fonts/raw/main/ofl
+          get() { curl -fsSL --retry 3 -o "app/src/main/assets/fonts/$2" "$B/$1" || { echo "GAGAL: $2"; rm -f "app/src/main/assets/fonts/$2"; }; }
+          get amiri/Amiri-Regular.ttf Amiri-Regular.ttf
+          get scheherazadenew/ScheherazadeNew-Regular.ttf ScheherazadeNew-Regular.ttf
+          get "notonaskharabic/NotoNaskhArabic%5Bwght%5D.ttf" NotoNaskhArabic.ttf
+          get lateef/Lateef-Regular.ttf Lateef-Regular.ttf
+          get "notokufiarabic/NotoKufiArabic%5Bwght%5D.ttf" NotoKufiArabic.ttf
+          get "cairo/Cairo%5Bslnt%2Cwght%5D.ttf" Cairo.ttf
+          ls -la app/src/main/assets/fonts
 
       - name: Build release APK
         run: gradle assembleRelease -PbuildNumber=${{ github.run_number }} -PgithubRepo=${{ github.repository }} --no-daemon
