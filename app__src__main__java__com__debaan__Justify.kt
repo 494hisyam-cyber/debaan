@@ -76,11 +76,11 @@ private fun withKashida(words: List<String>, count: Int): List<String> {
     }
 }
 
-private class Line(val words: List<String>, val gapDp: Float)
-private class Laid(val sizeSp: Float, val rows: List<Pair<Line, Line>>)
+private class JLine(val words: List<String>, val gapDp: Float)
+private class Laid(val sizeSp: Float, val rows: List<Pair<JLine, JLine>>)
 
 @Composable
-private fun JustLine(line: Line, sizeSp: Float, font: FontFamily, modifier: Modifier) {
+private fun JustLine(line: JLine, sizeSp: Float, font: FontFamily, modifier: Modifier) {
     Row(
         modifier,
         horizontalArrangement = Arrangement.spacedBy(line.gapDp.dp, Alignment.CenterHorizontally),
@@ -120,11 +120,11 @@ fun PairGroup(pairs: List<Pair<String, String>>, base: Float, font: FontFamily) 
             val lines = all.mapIndexed { i, ws ->
                 val n = ws.size
                 val sum = wb[i].sum() * scale
-                if (n == 1) Line(ws, 0f) else {
+                if (n == 1) JLine(ws, 0f) else {
                     val room = colPx - sum - (n - 1) * minGap
                     val count = (room * 0.9f / (tw * scale)).toInt().coerceIn(0, n * 6)
                     val gap = ((colPx - sum - count * tw * scale) / (n - 1)).coerceAtLeast(minGap)
-                    Line(withKashida(ws, count), gap / density.density)
+                    JLine(withKashida(ws, count), gap / density.density)
                 }
             }
             Laid(base * scale, lines.chunked(2).map { it[0] to it[1] })
