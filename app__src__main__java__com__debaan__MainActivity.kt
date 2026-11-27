@@ -8,7 +8,20 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -82,21 +95,38 @@ fun DebaanApp() {
         containerColor = Sage,
         bottomBar = {
             if (open == null) {
-                NavigationBar(containerColor = CardBg) {
-                    tabs.forEachIndexed { i, t ->
-                        NavigationBarItem(
-                            selected = tab == i,
-                            onClick = { tab = i },
-                            icon = { Icon(t.icon, contentDescription = t.label) },
-                            label = { Text(t.label, fontSize = 11.sp) },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Green,
-                                selectedTextColor = Green,
-                                indicatorColor = Green.copy(alpha = 0.2f),
-                                unselectedIconColor = Muted,
-                                unselectedTextColor = Muted,
-                            ),
-                        )
+                // Bilah menu melayang berbentuk pil, ikon terpilih di dalam lingkaran berwarna.
+                Box(
+                    Modifier.fillMaxWidth().navigationBarsPadding().padding(start = 22.dp, end = 22.dp, bottom = 14.dp, top = 4.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(36.dp),
+                        color = CardBg,
+                        shadowElevation = 10.dp,
+                        tonalElevation = 0.dp,
+                    ) {
+                        Row(
+                            Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            tabs.forEachIndexed { i, t ->
+                                val sel = tab == i
+                                Box(
+                                    Modifier.size(52.dp).clip(CircleShape)
+                                        .background(if (sel) Green else Color.Transparent)
+                                        .clickable { tab = i },
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        t.icon, contentDescription = t.label,
+                                        tint = if (sel) MaterialTheme.colorScheme.onPrimary else Muted,
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }

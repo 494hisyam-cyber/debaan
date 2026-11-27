@@ -6,6 +6,9 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.widget.Toast
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -107,12 +110,18 @@ fun Ornament(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun ScreenTitle(text: String, prefs: Prefs? = null) {
+fun ScreenTitle(text: String, prefs: Prefs? = null, logo: Boolean = false) {
     Box(Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 12.dp)) {
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(text, fontFamily = FontFamily.Serif, fontSize = 22.sp, fontWeight = FontWeight.Medium, color = Ink)
             Spacer(Modifier.height(6.dp))
             Ornament()
+        }
+        if (logo) {
+            Image(
+                painterResource(R.drawable.logo_beranda), contentDescription = "Logo Majmu' Maulid",
+                modifier = Modifier.align(Alignment.CenterStart).padding(start = 16.dp).height(44.dp),
+            )
         }
         if (prefs != null) ViewModeButton(prefs, Modifier.align(Alignment.CenterEnd).padding(end = 8.dp))
     }
@@ -152,9 +161,26 @@ fun ViewModeButton(prefs: Prefs, modifier: Modifier = Modifier) {
     }
 }
 
+private fun coverRes(id: String): Int? = when (id) {
+    "barzanji" -> R.drawable.cover_barzanji
+    "simthud" -> R.drawable.cover_simthud
+    "dhiya" -> R.drawable.cover_dhiya
+    "diba" -> R.drawable.cover_diba
+    "syaraful" -> R.drawable.cover_syaraful
+    else -> null // Burdah belum punya sampul: pakai sampul polos
+}
+
 @Composable
-fun Cover(modifier: Modifier = Modifier, fontSize: Int = 18) {
+fun Cover(id: String, modifier: Modifier = Modifier, fontSize: Int = 18) {
     val shape = RoundedCornerShape(6.dp)
+    val res = coverRes(id)
+    if (res != null) {
+        Image(
+            painterResource(res), contentDescription = null, contentScale = ContentScale.Crop,
+            modifier = modifier.clip(shape),
+        )
+        return
+    }
     Box(
         modifier
             .clip(shape)
@@ -170,7 +196,7 @@ fun Cover(modifier: Modifier = Modifier, fontSize: Int = 18) {
 fun MaulidRow(m: Maulid, onClick: () -> Unit) {
     Surface(onClick = onClick, shape = RoundedCornerShape(18.dp), color = CardBg, modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Cover(Modifier.size(52.dp, 70.dp))
+            Cover(m.id, Modifier.size(52.dp, 70.dp))
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(m.title, fontFamily = FontFamily.Serif, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Ink)
@@ -200,7 +226,7 @@ fun MaulidCompact(m: Maulid, onClick: () -> Unit) {
 fun MaulidTile(m: Maulid, onClick: () -> Unit) {
     Surface(onClick = onClick, shape = RoundedCornerShape(18.dp), color = CardBg, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Cover(Modifier.fillMaxWidth().aspectRatio(0.78f), 34)
+            Cover(m.id, Modifier.fillMaxWidth().aspectRatio(0.75f), 34)
             Spacer(Modifier.height(8.dp))
             Text(
                 m.title, fontFamily = FontFamily.Serif, fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
@@ -244,7 +270,7 @@ fun MaulidCollection(
 fun HomeScreen(prefs: Prefs, onOpen: (Maulid) -> Unit) {
     val last = Catalog.byId(prefs.lastId)
     Column(Modifier.fillMaxSize()) {
-        ScreenTitle("Debaan", prefs)
+        ScreenTitle("Debaan", prefs, logo = true)
         MaulidCollection(Catalog.items, prefs, onOpen) {
             if (last != null) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
@@ -277,7 +303,7 @@ private fun SectionHeader(text: String) {
 private fun ContinueCard(m: Maulid, progress: Float, onClick: () -> Unit) {
     Surface(onClick = onClick, shape = RoundedCornerShape(20.dp), color = CardBg, modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Cover(Modifier.size(56.dp, 76.dp), 20)
+            Cover(m.id, Modifier.size(56.dp, 75.dp), 20)
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Text(m.title, fontFamily = FontFamily.Serif, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = Ink)
