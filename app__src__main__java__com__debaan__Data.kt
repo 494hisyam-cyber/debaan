@@ -101,7 +101,7 @@ class Prefs(context: Context, ids: List<String>) {
     fun setArab(v: Boolean) { showArab = v; sp.edit().putBoolean("arab", v).apply() }
     fun setLatin(v: Boolean) { showLatin = v; sp.edit().putBoolean("latin", v).apply() }
     fun setTerjemah(v: Boolean) { showTerjemah = v; sp.edit().putBoolean("terjemah", v).apply() }
-    fun setViewMode(i: Int) { viewMode = i; sp.edit().putInt("view", i).apply() }
+    fun chooseViewMode(i: Int) { viewMode = i; sp.edit().putInt("view", i).apply() }
     fun setSize(i: Int) { sizeIndex = i; sp.edit().putInt("size", i).apply() }
 
     fun isFav(id: String) = id in favorites

@@ -136,7 +136,7 @@ fun ViewModeButton(prefs: Prefs, modifier: Modifier = Modifier) {
             Row(Modifier.padding(horizontal = 6.dp, vertical = 4.dp)) {
                 ViewModes.forEachIndexed { i, (label, icon) ->
                     Column(
-                        Modifier.clickable { prefs.setViewMode(i); open = false }.padding(horizontal = 10.dp, vertical = 6.dp),
+                        Modifier.clickable { prefs.chooseViewMode(i); open = false }.padding(horizontal = 10.dp, vertical = 6.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Icon(icon, null, tint = Ink, modifier = Modifier.size(30.dp))
