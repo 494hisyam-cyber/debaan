@@ -108,7 +108,7 @@ fun DebaanApp() {
             } else {
                 when (tab) {
                     0 -> HomeScreen(prefs) { openId = it.id }
-                    1 -> CollectionScreen { openId = it.id }
+                    1 -> CollectionScreen(prefs) { openId = it.id }
                     2 -> FavoritesScreen(prefs) { openId = it.id }
                     else -> SettingsScreen(prefs, updater)
                 }

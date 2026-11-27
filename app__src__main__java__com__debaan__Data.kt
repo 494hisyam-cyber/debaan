@@ -86,6 +86,7 @@ class Prefs(context: Context, ids: List<String>) {
     var showTerjemah by mutableStateOf(sp.getBoolean("terjemah", true))
     var sizeIndex by mutableIntStateOf(sp.getInt("size", 1).coerceIn(0, 3))
     var lastId by mutableStateOf(sp.getString("last", null))
+    var viewMode by mutableIntStateOf(sp.getInt("view", 0).coerceIn(0, 2))
 
     val favorites = mutableStateListOf<String>().apply {
         addAll(sp.getStringSet("fav", emptySet()) ?: emptySet())
@@ -100,6 +101,7 @@ class Prefs(context: Context, ids: List<String>) {
     fun setArab(v: Boolean) { showArab = v; sp.edit().putBoolean("arab", v).apply() }
     fun setLatin(v: Boolean) { showLatin = v; sp.edit().putBoolean("latin", v).apply() }
     fun setTerjemah(v: Boolean) { showTerjemah = v; sp.edit().putBoolean("terjemah", v).apply() }
+    fun setViewMode(i: Int) { viewMode = i; sp.edit().putInt("view", i).apply() }
     fun setSize(i: Int) { sizeIndex = i; sp.edit().putInt("size", i).apply() }
 
     fun isFav(id: String) = id in favorites

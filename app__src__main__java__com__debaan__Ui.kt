@@ -6,6 +6,21 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.widget.Toast
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridScope
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items as gridItems
+import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
+import androidx.compose.material.icons.automirrored.filled.ViewList
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -92,14 +107,48 @@ fun Ornament(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun ScreenTitle(text: String) {
-    Column(
-        Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(text, fontFamily = FontFamily.Serif, fontSize = 22.sp, fontWeight = FontWeight.Medium, color = Ink)
-        Spacer(Modifier.height(6.dp))
-        Ornament()
+fun ScreenTitle(text: String, prefs: Prefs? = null) {
+    Box(Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 12.dp)) {
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text, fontFamily = FontFamily.Serif, fontSize = 22.sp, fontWeight = FontWeight.Medium, color = Ink)
+            Spacer(Modifier.height(6.dp))
+            Ornament()
+        }
+        if (prefs != null) ViewModeButton(prefs, Modifier.align(Alignment.CenterEnd).padding(end = 8.dp))
+    }
+}
+
+private val ViewModes = listOf(
+    "Mendetail" to Icons.AutoMirrored.Filled.ViewList,
+    "Ringkas" to Icons.AutoMirrored.Filled.FormatListBulleted,
+    "Petak" to Icons.Default.GridView,
+)
+
+@Composable
+fun ViewModeButton(prefs: Prefs, modifier: Modifier = Modifier) {
+    var open by remember { mutableStateOf(false) }
+    Box(modifier) {
+        IconButton(onClick = { open = true }) {
+            Icon(ViewModes[prefs.viewMode].second, "Jenis tampilan", tint = Ink)
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }, containerColor = CardBg) {
+            Text("Jenis tampilan", fontSize = 13.sp, color = Ink, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
+            Row(Modifier.padding(horizontal = 6.dp, vertical = 4.dp)) {
+                ViewModes.forEachIndexed { i, (label, icon) ->
+                    Column(
+                        Modifier.clickable { prefs.setViewMode(i); open = false }.padding(horizontal = 10.dp, vertical = 6.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Icon(icon, null, tint = Ink, modifier = Modifier.size(30.dp))
+                        Box(
+                            Modifier.padding(top = 3.dp).width(40.dp).height(3.dp)
+                                .background(if (prefs.viewMode == i) Green else Color.Transparent),
+                        )
+                        Text(label, fontSize = 11.sp, color = Ink, modifier = Modifier.padding(top = 2.dp))
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -134,27 +183,80 @@ fun MaulidRow(m: Maulid, onClick: () -> Unit) {
     }
 }
 
+@Composable
+fun MaulidCompact(m: Maulid, onClick: () -> Unit) {
+    Surface(onClick = onClick, shape = RoundedCornerShape(12.dp), color = CardBg, modifier = Modifier.fillMaxWidth()) {
+        Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                m.title, fontFamily = FontFamily.Serif, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
+                color = Ink, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
+            )
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = Muted)
+        }
+    }
+}
+
+@Composable
+fun MaulidTile(m: Maulid, onClick: () -> Unit) {
+    Surface(onClick = onClick, shape = RoundedCornerShape(18.dp), color = CardBg, modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Cover(Modifier.fillMaxWidth().aspectRatio(0.78f), 34)
+            Spacer(Modifier.height(8.dp))
+            Text(
+                m.title, fontFamily = FontFamily.Serif, fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
+                color = Ink, textAlign = TextAlign.Center, maxLines = 2, minLines = 2, overflow = TextOverflow.Ellipsis,
+            )
+            Text(m.author, fontSize = 11.sp, color = Muted, textAlign = TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+/** Daftar maulid sesuai jenis tampilan pilihan (mendetail / ringkas / petak). */
+@Composable
+fun MaulidCollection(
+    items: List<Maulid>,
+    prefs: Prefs,
+    onOpen: (Maulid) -> Unit,
+    header: (LazyGridScope.() -> Unit)? = null,
+) {
+    val mode = prefs.viewMode
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(if (mode == 2) 2 else 1),
+        contentPadding = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(if (mode == 1) 6.dp else 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        header?.invoke(this)
+        gridItems(items, key = { it.id }) { m ->
+            when (mode) {
+                0 -> MaulidRow(m) { onOpen(m) }
+                1 -> MaulidCompact(m) { onOpen(m) }
+                else -> MaulidTile(m) { onOpen(m) }
+            }
+        }
+    }
+}
+
 // ---------------------------------------------------------------- beranda
 
 @Composable
 fun HomeScreen(prefs: Prefs, onOpen: (Maulid) -> Unit) {
     val last = Catalog.byId(prefs.lastId)
     Column(Modifier.fillMaxSize()) {
-        ScreenTitle("Debaan")
-        LazyColumn(
-            contentPadding = PaddingValues(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
+        ScreenTitle("Debaan", prefs)
+        MaulidCollection(Catalog.items, prefs, onOpen) {
             if (last != null) {
-                item {
-                    SectionHeader("Teruskan Membaca")
-                    Spacer(Modifier.height(8.dp))
-                    ContinueCard(last, prefs.progressOf(last.id)) { onOpen(last) }
-                    Spacer(Modifier.height(10.dp))
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Column {
+                        SectionHeader("Teruskan Membaca")
+                        Spacer(Modifier.height(8.dp))
+                        ContinueCard(last, prefs.progressOf(last.id)) { onOpen(last) }
+                        Spacer(Modifier.height(6.dp))
+                    }
                 }
             }
-            item { SectionHeader("Koleksi Maulid") }
-            items(Catalog.items, key = { it.id }) { m -> MaulidRow(m) { onOpen(m) } }
+            item(span = { GridItemSpan(maxLineSpan) }) { SectionHeader("Koleksi Maulid") }
         }
     }
 }
@@ -197,13 +299,13 @@ private fun ContinueCard(m: Maulid, progress: Float, onClick: () -> Unit) {
 // ---------------------------------------------------------------- koleksi & favorit
 
 @Composable
-fun CollectionScreen(onOpen: (Maulid) -> Unit) {
+fun CollectionScreen(prefs: Prefs, onOpen: (Maulid) -> Unit) {
     var query by remember { mutableStateOf("") }
     val shown = Catalog.items.filter {
         query.isBlank() || it.title.contains(query, true) || it.author.contains(query, true)
     }
     Column(Modifier.fillMaxSize()) {
-        ScreenTitle("Koleksi Maulid")
+        ScreenTitle("Koleksi Maulid", prefs)
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
@@ -220,12 +322,7 @@ fun CollectionScreen(onOpen: (Maulid) -> Unit) {
             ),
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         )
-        LazyColumn(
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            items(shown, key = { it.id }) { m -> MaulidRow(m) { onOpen(m) } }
-        }
+        MaulidCollection(shown, prefs, onOpen)
     }
 }
 
@@ -233,7 +330,7 @@ fun CollectionScreen(onOpen: (Maulid) -> Unit) {
 fun FavoritesScreen(prefs: Prefs, onOpen: (Maulid) -> Unit) {
     val favs = Catalog.items.filter { prefs.isFav(it.id) }
     Column(Modifier.fillMaxSize()) {
-        ScreenTitle("Favorit")
+        ScreenTitle("Favorit", prefs)
         if (favs.isEmpty()) {
             Box(Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.TopCenter) {
                 Text(
@@ -242,12 +339,7 @@ fun FavoritesScreen(prefs: Prefs, onOpen: (Maulid) -> Unit) {
                 )
             }
         } else {
-            LazyColumn(
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                items(favs, key = { it.id }) { m -> MaulidRow(m) { onOpen(m) } }
-            }
+            MaulidCollection(favs, prefs, onOpen)
         }
     }
 }
@@ -331,7 +423,18 @@ private fun ReaderList(m: Maulid, sections: List<Section>, prefs: Prefs) {
         buildList<ReadItem> {
             sections.forEach { s ->
                 add(ReadItem.Head(s.title))
-                s.verses.forEach { add(ReadItem.V(it)) }
+                var pend = mutableListOf<String>()
+                fun flushPairs() {
+                    if (pend.isNotEmpty()) add(ReadItem.V(Verse(pend.joinToString("\n"), "", "")))
+                    pend = mutableListOf()
+                }
+                s.verses.forEach { v ->
+                    val onlyPairs = v.lat.isBlank() && v.id.isBlank() && v.ar.isNotBlank() &&
+                        v.ar.lines().filter { it.isNotBlank() }.all { PAIR in it }
+                    if (onlyPairs) pend.addAll(v.ar.lines().filter { it.isNotBlank() }.map { it.trim() })
+                    else { flushPairs(); add(ReadItem.V(v)) }
+                }
+                flushPairs()
             }
         }
     }
@@ -358,10 +461,14 @@ private fun ReaderList(m: Maulid, sections: List<Section>, prefs: Prefs) {
     val arab = arabFont()
     val textSp = prefs.textSp
 
+    Surface(
+        shape = RoundedCornerShape(20.dp), color = CardBg,
+        modifier = Modifier.fillMaxSize().padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
+    ) {
     LazyColumn(
         state = state,
-        contentPadding = PaddingValues(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(start = 10.dp, top = 8.dp, end = 10.dp, bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
         modifier = Modifier.fillMaxSize(),
     ) {
         items(rows) { item ->
@@ -374,28 +481,26 @@ private fun ReaderList(m: Maulid, sections: List<Section>, prefs: Prefs) {
                         item.title, fontFamily = FontFamily.Serif, fontSize = 20.sp,
                         fontWeight = FontWeight.SemiBold, color = Ink, textAlign = TextAlign.Center,
                     )
-                    Spacer(Modifier.height(6.dp))
-                    Ornament()
+                    Spacer(Modifier.height(8.dp))
+                    Box(Modifier.fillMaxWidth().height(2.dp).background(Ink.copy(alpha = 0.7f)))
+                    Spacer(Modifier.height(2.dp))
+                    Box(Modifier.fillMaxWidth().height(1.dp).background(Ink.copy(alpha = 0.7f)))
                 }
-                is ReadItem.V -> {
+                is ReadItem.V -> if (item.verse.lat.isBlank() && item.verse.id.isBlank() && isLabel(item.verse.ar)) {
+                    Text(
+                        item.verse.ar.trim(), fontSize = (arabSp * 0.7f).sp, fontFamily = arab, color = Muted,
+                        textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(),
+                    )
+                } else {
                     val v = item.verse
-                    Surface(shape = RoundedCornerShape(20.dp), color = CardBg, modifier = Modifier.fillMaxWidth()) {
+                    run {
                         Column(
-                            Modifier.padding(horizontal = 18.dp, vertical = 20.dp),
+                            Modifier.fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
                             if (prefs.showArab && v.ar.isNotBlank()) {
-                                Text(
-                                    v.ar,
-                                    fontSize = arabSp.sp,
-                                    fontFamily = arab,
-                                    lineHeight = (arabSp * 1.9f).sp,
-                                    textAlign = TextAlign.Center,
-                                    color = Ink,
-                                    style = TextStyle(textDirection = TextDirection.Rtl),
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
+                                ArabLines(v.ar, arabSp, arab)
                             }
                             if (prefs.showLatin && v.lat.isNotBlank()) {
                                 Text(
@@ -416,9 +521,49 @@ private fun ReaderList(m: Maulid, sections: List<Section>, prefs: Prefs) {
                                     modifier = Modifier.fillMaxWidth(),
                                 )
                             }
+                            if (!v.ar.contains(PAIR)) {
+                                Box(Modifier.padding(top = 2.dp).width(48.dp).height(1.dp).background(Line))
+                            }
                         }
                     }
                 }
+            }
+        }
+    }
+    }
+}
+
+private const val PAIR = " * "
+
+/** Penanda singkat seperti "(اللازمة)" tampil sebagai label kecil tanpa kartu. */
+private fun isLabel(t: String): Boolean {
+    val x = t.trim()
+    return x.length <= 24 && x.startsWith("(") && x.endsWith(")") && !x.contains('\n')
+}
+
+/** Teks Arab: baris berpasangan ("syatr1 * syatr2") tampil dua kolom bergaris tengah, baris lain di tengah. */
+@Composable
+private fun ArabLines(text: String, size: Int, font: FontFamily) {
+    val lines = text.lines().map { it.trim() }.filter { it.isNotEmpty() }
+    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        var i = 0
+        while (i < lines.size) {
+            if (PAIR in lines[i]) {
+                val grp = mutableListOf<Pair<String, String>>()
+                while (i < lines.size && PAIR in lines[i]) {
+                    val (a, b) = lines[i].split(PAIR, limit = 2)
+                    grp += a.trim() to b.trim()
+                    i++
+                }
+                PairGroup(grp, size.toFloat(), font)
+            } else {
+                if (i > 0) Spacer(Modifier.height(4.dp))
+                Text(
+                    lines[i], fontSize = size.sp, lineHeight = (size * 1.9f).sp, fontFamily = font,
+                    textAlign = TextAlign.Center, color = Ink,
+                    style = TextStyle(textDirection = TextDirection.Rtl), modifier = Modifier.fillMaxWidth(),
+                )
+                i++
             }
         }
     }
