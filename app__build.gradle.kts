@@ -21,12 +21,16 @@ android {
         buildConfigField("String", "GITHUB_REPO", "\"$githubRepo\"")
     }
 
+    // Kunci tanda tangan dibaca dari variabel lingkungan (GitHub Secrets), tidak disimpan di repo.
+    val ksPassword: String? = System.getenv("KEYSTORE_PASSWORD")
     signingConfigs {
-        create("release") {
-            storeFile = file("debaan.jks")
-            storePassword = "debaan123"
-            keyAlias = "debaan"
-            keyPassword = "debaan123"
+        if (ksPassword != null) {
+            create("release") {
+                storeFile = file(System.getenv("KEYSTORE_PATH") ?: "debaan.jks")
+                storePassword = ksPassword
+                keyAlias = System.getenv("KEY_ALIAS") ?: "debaan"
+                keyPassword = System.getenv("KEY_PASSWORD") ?: ksPassword
+            }
         }
     }
 
@@ -34,11 +38,11 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("release")
+            signingConfigs.findByName("release")?.let { signingConfig = it }
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         debug {
-            signingConfig = signingConfigs.getByName("release")
+            signingConfigs.findByName("release")?.let { signingConfig = it }
         }
     }
 
