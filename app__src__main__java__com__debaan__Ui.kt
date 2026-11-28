@@ -6,6 +6,13 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.widget.Toast
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlinx.coroutines.delay
+import kotlin.math.PI
+import kotlin.math.sin
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
@@ -118,13 +125,38 @@ fun ScreenTitle(text: String, prefs: Prefs? = null, logo: Boolean = false) {
             Ornament()
         }
         if (logo) {
-            Image(
-                painterResource(R.drawable.logo_beranda), contentDescription = "Logo Majmu' Maulid",
-                modifier = Modifier.align(Alignment.CenterStart).padding(start = 16.dp).height(44.dp),
-            )
+            AnimatedLogo(Modifier.align(Alignment.CenterStart).padding(start = 16.dp).height(44.dp))
         }
         if (prefs != null) ViewModeButton(prefs, Modifier.align(Alignment.CenterEnd).padding(end = 8.dp))
     }
+}
+
+/** Logo bergoyang dan berdenyut sekitar 2,5 detik, diulang setiap 1 menit. */
+@Composable
+private fun AnimatedLogo(modifier: Modifier) {
+    val t = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(60_000)
+            t.snapTo(0f)
+            t.animateTo(1f, tween(durationMillis = 2500, easing = LinearEasing))  // kurva halus ada di rumus di bawah
+            t.snapTo(0f)
+        }
+    }
+    Image(
+        painterResource(R.drawable.logo_beranda), contentDescription = "Logo Majmu' Maulid",
+        modifier = modifier.graphicsLayer {
+            // Gerak halus: amplitudo naik-turun dengan kurva sin^2 (mulai dan berhenti tanpa hentakan).
+            val p = t.value
+            val s1 = sin(p * PI.toFloat())
+            val env = s1 * s1
+            rotationZ = 6f * env * sin(p * 2f * PI.toFloat() * 2f)
+            val pulse = 1f + 0.10f * env
+            scaleX = pulse
+            scaleY = pulse
+            translationY = -3.dp.toPx() * env
+        },
+    )
 }
 
 private val ViewModes = listOf(
@@ -331,7 +363,7 @@ fun CollectionScreen(prefs: Prefs, onOpen: (Maulid) -> Unit) {
         query.isBlank() || it.title.contains(query, true) || it.author.contains(query, true)
     }
     Column(Modifier.fillMaxSize()) {
-        ScreenTitle("Koleksi Maulid", prefs)
+        ScreenTitle("Koleksi Maulid", prefs, logo = true)
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
@@ -356,7 +388,7 @@ fun CollectionScreen(prefs: Prefs, onOpen: (Maulid) -> Unit) {
 fun FavoritesScreen(prefs: Prefs, onOpen: (Maulid) -> Unit) {
     val favs = Catalog.items.filter { prefs.isFav(it.id) }
     Column(Modifier.fillMaxSize()) {
-        ScreenTitle("Favorit", prefs)
+        ScreenTitle("Favorit", prefs, logo = true)
         if (favs.isEmpty()) {
             Box(Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.TopCenter) {
                 Text(
